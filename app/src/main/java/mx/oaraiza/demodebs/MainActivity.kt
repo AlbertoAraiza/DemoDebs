@@ -3,9 +3,6 @@ package mx.oaraiza.demodebs
 import android.content.Context
 import android.os.AsyncTask
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.widget.Button
-import android.widget.EditText
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,6 +10,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import mx.oaraiza.demodebs.database.DebtDB
 import mx.oaraiza.demodebs.database.DebtEntity
 import mx.oaraiza.demodebs.database.DemoDAO
+import mx.oaraiza.demodebs.databinding.NewDebtDialogBinding
 import mx.oaraiza.demodebs.recycler_view.DebtAdapter
 import java.lang.ref.WeakReference
 import java.text.NumberFormat
@@ -36,16 +34,17 @@ class MainActivity : AppCompatActivity() {
             val builder = AlertDialog.Builder(it.context)
             lateinit var dialog : AlertDialog
             builder.setTitle("Agregar Deuda")
-            val view = LayoutInflater.from(it.context).inflate(R.layout.new_debt_dialog,null)
-            val addButton = view.findViewById<Button>(R.id.btnAdd)
-            addButton.setOnClickListener {
-                val newName = view.findViewById<EditText>(R.id.etNombre).text.toString()
-                val newCantity = view.findViewById<EditText>(R.id.etCantidad).text.toString().toFloat()
+            //val view = LayoutInflater.from(it.context).inflate(R.layout.new_debt_dialog,null)
+            val view = NewDebtDialogBinding.inflate(layoutInflater)
+            view.nombre = "Hola Mundo"
+           view.btnAdd.setOnClickListener {
+                val newName = view.etNombre.text.toString()
+                val newCantity = view.etCantidad.text.toString().toFloat()
                 AddItemTask(it.context, WeakReference(this)).execute(DebtEntity(nombre = newName, cantidad = newCantity))
                 dialog.dismiss()
                 this.onResume()
             }
-            builder.setView(view)
+            builder.setView(view.root)
             dialog = builder.create()
             dialog.show()
 
