@@ -13,4 +13,7 @@ interface DemoDAO {
 
     @Query("SELECT * FROM DebtEntity ORDER BY fecha DESC")
     fun getDebts():List<DebtEntity>
+
+    @Update
+    fun updateDebt(newDebt :DebtEntity)
 }

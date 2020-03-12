@@ -3,6 +3,7 @@ package mx.oaraiza.demodebs
 import android.content.Context
 import android.os.AsyncTask
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,35 +20,44 @@ import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity() {
     lateinit var db : DemoDAO
-    lateinit var adapter : DebtAdapter
+    lateinit var debts: List<DebtEntity>
+    lateinit var ctx : Context
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        ctx = this
         db = DebtDB.getDatabase(this).getDao()
-        adapter = DebtAdapter(this, WeakReference(this))
+        object : AsyncTask<Void, Void, Void?>(){
+            override fun doInBackground(vararg params: Void?): Void? {
+                debts = DebtDB.getDatabase(ctx).getDao().getDebts()
+                return null
+            }
 
-        rvDebts.adapter = adapter
+            override fun onPostExecute(result: Void?) {
+                rvDebts.adapter = DebtAdapter(debts, tvTotal){
+                    Toast.makeText(ctx,"Hola mundo", Toast.LENGTH_LONG).show()
+                }
+                (rvDebts.adapter as DebtAdapter).notifyDataSetChanged()
+            }
+        }.execute()
         rvDebts.layoutManager = LinearLayoutManager(this)
 
-        ibAdd.setOnClickListener{
+        btnAdd.setOnClickListener{
             val builder = AlertDialog.Builder(it.context)
             lateinit var dialog : AlertDialog
             builder.setTitle("Agregar Deuda")
-            //val view = LayoutInflater.from(it.context).inflate(R.layout.new_debt_dialog,null)
             val view = NewDebtDialogBinding.inflate(layoutInflater)
-            view.nombre = "Hola Mundo"
            view.btnAdd.setOnClickListener {
                 val newName = view.etNombre.text.toString()
                 val newCantity = view.etCantidad.text.toString().toFloat()
-                AddItemTask(it.context, WeakReference(this)).execute(DebtEntity(nombre = newName, cantidad = newCantity))
+                val newEntity = DebtEntity(nombre = newName, cantidad = newCantity)
+                AddItemTask(it.context, WeakReference(this)).execute(newEntity)
                 dialog.dismiss()
                 this.onResume()
             }
             builder.setView(view.root)
             dialog = builder.create()
             dialog.show()
-
         }
     }
 
@@ -66,8 +76,7 @@ class MainActivity : AppCompatActivity() {
         val currency = format.format(total)
         runOnUiThread{
             tvTotal.text = currency
-            adapter.setDebts(currentDebts)
-            adapter.notifyDataSetChanged()
+            rvDebts.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -81,15 +90,16 @@ class MainActivity : AppCompatActivity() {
 
     fun addItemAdapter(newDebt: DebtEntity){
         var total = 0f
-        val debts = adapter.getDebts()
-        debts.add(newDebt)
+        val debts = (rvDebts.adapter as DebtAdapter).debts
+
+        debts.add(0,newDebt)
         debts.forEach{
             total = it.cantidad
         }
         val format = NumberFormat.getCurrencyInstance(Locale.US)
         val currency = format.format(total)
         runOnUiThread{
-            adapter.notifyDataSetChanged()
+            (rvDebts.adapter as DebtAdapter).notifyDataSetChanged()
             tvTotal.text = currency
         }
     }
@@ -120,4 +130,6 @@ class MainActivity : AppCompatActivity() {
             activity?.updateDebts(result)
         }
     }
+
+
 }

@@ -2,6 +2,7 @@
     <string name="app_name">Debts Manager</string>
     <string name="fecha">TextView</string>
     <string name="cantidad">TextView</string>
-    <string name="nombre">TextView</string>
+    <string name="nombre">Nombre</string>
     <string name="addDescription">Add Icon</string>
+    <string name="agregar">Agregar</string>
 </resources>
